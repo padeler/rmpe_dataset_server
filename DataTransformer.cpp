@@ -12,7 +12,7 @@ DataTransformer::DataTransformer(const TransformationParameter& param) : param_(
 }
 
 void DataTransformer::InitRand() {
-  const bool needs_rand = param_.mirror || param_.crop_size;
+  const bool needs_rand = true;//param_.mirror || param_.crop_size;
   if (needs_rand) {
     const unsigned int rng_seed = caffe_rng_rand();
     rng_.reset(new RNGen::RNG(rng_seed));
@@ -124,7 +124,7 @@ bool DataTransformer::AugmentationFlip(Mat& img_src, Mat& img_aug, Mat& mask_mis
 
   if (param_.aug_way == "rand") {
     float dice = Rand(RAND_MAX) / static_cast <float> (RAND_MAX);
-    doflip = (dice <= param_.flip_prob);
+    doflip = (dice < param_.flip_prob);
   }
   else if (param_.aug_way == "table") {
     doflip = (aug_flips_[meta.write_number][meta.epoch % param_.num_total_augs] == 1);
@@ -212,7 +212,6 @@ float DataTransformer::AugmentationScale(Mat& img_src, Mat& img_temp, Mat& mask_
     scale_multiplier = (param_.scale_max - param_.scale_min) * dice2 + param_.scale_min; //linear shear into [scale_min, scale_max]
   }
   float scale_abs = param_.target_dist/meta.scale_self;
-  std::cout<<"SCALE "<<scale_abs<<" SCALE SELF "<<meta.scale_self<< std::endl;
   float scale = scale_abs * scale_multiplier;
 
   resize(img_src, img_temp, Size(), scale, scale, INTER_CUBIC);

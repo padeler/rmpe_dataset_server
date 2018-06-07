@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
   const string in_dataset = argv[1];
   const string port = argv[2];
   bool do_data_aug = !(argc==4);
-  std::cout<<"Data Augmentation enabled: "<<data_aug<<std::endl;
+  std::cout<<"Data Augmentation enabled: "<<do_data_aug<<std::endl;
 
   // Initialize zmq socket
 
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
   }
   else
   {
-    params.target_dist=0.6;
+    params.target_dist=1.0;
     params.scale_prob=0;
     params.scale_min=1.0;
     params.scale_max=1.0;
