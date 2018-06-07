@@ -212,6 +212,7 @@ float DataTransformer::AugmentationScale(Mat& img_src, Mat& img_temp, Mat& mask_
     scale_multiplier = (param_.scale_max - param_.scale_min) * dice2 + param_.scale_min; //linear shear into [scale_min, scale_max]
   }
   float scale_abs = param_.target_dist/meta.scale_self;
+  std::cout<<"SCALE "<<scale_abs<<" SCALE SELF "<<meta.scale_self<< std::endl;
   float scale = scale_abs * scale_multiplier;
 
   resize(img_src, img_temp, Size(), scale, scale, INTER_CUBIC);

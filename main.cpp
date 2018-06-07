@@ -84,6 +84,12 @@ int sendTransformed(
     string header_data =  "{\"descr\":\"uint8\",\"shape\":\"(3, 368,368)\",\"fortran_order\":false}";
     string header_mask =  "{\"descr\":\"<f8\",\"shape\":\"(46,46)\",\"fortran_order\":false}";
     string header_label = "{\"descr\":\"<f8\",\"shape\":\"(57,46,46)\",\"fortran_order\":false}";
+    //string header_data =  "{\"descr\":\"uint8\",\"shape\":\"(3, 224,224)\",\"fortran_order\":false}";
+    //string header_mask =  "{\"descr\":\"<f8\",\"shape\":\"(28,28)\",\"fortran_order\":false}";
+    //string header_label = "{\"descr\":\"<f8\",\"shape\":\"(57,28,28)\",\"fortran_order\":false}";
+    //string header_data =  "{\"descr\":\"uint8\",\"shape\":\"(3, 368,368)\",\"fortran_order\":false}";
+    //string header_mask =  "{\"descr\":\"<f8\",\"shape\":\"(92,92)\",\"fortran_order\":false}";
+    //string header_label = "{\"descr\":\"<f8\",\"shape\":\"(57,92,92)\",\"fortran_order\":false}";
     string headers = "[" + header_data + "," + header_mask + "," + header_label + "]";
     zmq::message_t request (headers.size());
     memcpy (request.data (), (headers.c_str()), (headers.size()));
@@ -112,18 +118,20 @@ int main(int argc, char* argv[]) {
 
   // Check the number of parameters
   if (argc < 3) {
-    std::cerr << "Usage: " << argv[0] << " <INPUT DATASET>" << " <PORT>" << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <INPUT DATASET>" << " <PORT> [NO_DATA_AUG]" << std::endl;
     return 1;
   }
 
   const string in_dataset = argv[1];
   const string port = argv[2];
+  bool do_data_aug = !(argc==4);
+  std::cout<<"Data Augmentation enabled: "<<data_aug<<std::endl;
 
   // Initialize zmq socket
 
   zmq::context_t ctx (1);
   zmq::socket_t s (ctx, ZMQ_PUSH);
-  s.setsockopt(ZMQ_SNDHWM, 160);
+  s.setsockopt(ZMQ_SNDHWM, 1600);
   string bind_addr = "tcp://*:";
   bind_addr.append(port);
   int rc = zmq_bind (s, bind_addr.c_str());
@@ -133,20 +141,36 @@ int main(int argc, char* argv[]) {
   // Initialize params
 
   TransformationParameter params;
-
   params.stride=8;
   params.crop_size_x=368;
   params.crop_size_y=368;
-  params.target_dist=0.6;
-  params.scale_prob=1;
-  params.scale_min=0.5;
-  params.scale_max=1.1;
-  params.max_rotate_degree=40;
-  params.center_perterb_max=40;
-  params.do_clahe=false;
   params.num_parts_in_annot=17;
   params.num_parts=56;
-  params.mirror = true;
+
+  if(do_data_aug)
+  {
+    params.target_dist=0.6;
+    params.scale_prob=1;
+    params.scale_min=0.5;
+    params.scale_max=1.1;
+    params.max_rotate_degree=40;
+    params.center_perterb_max=40;
+    params.do_clahe=false;
+    params.mirror = true;
+  }
+  else
+  {
+    params.target_dist=0.6;
+    params.scale_prob=0;
+    params.scale_min=1.0;
+    params.scale_max=1.0;
+    params.max_rotate_degree=0;
+    params.center_perterb_max=0;
+    params.do_clahe=false;
+    params.mirror = false;
+    params.flip_prob = 0;
+  }
+
 
   DataTransformer* cpmDataTransformer = new DataTransformer(params);
   cpmDataTransformer->InitRand();
